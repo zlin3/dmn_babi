@@ -56,7 +56,7 @@ def train(dset_train, batch_size, epoch, baseGRU):
             accs.append(acc.item())
             loss.backward()
             optim.step()
-            if batch_idx == 5: break
+            if batch_idx == 50: break
         plt.figure()
         plt.plot(losses)
         plt.title('training loss')
