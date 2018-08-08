@@ -35,18 +35,20 @@ class BaselineGRU(nn.Module):
 def train(dset_train, batch_size, epoch, baseGRU):
     criterion = nn.NLLLoss()
     optim = torch.optim.Adam(baseGRU.parameters())
+    losses = []
+    accs = []
     for e in range(epoch):
         train_loader = DL(dset_train, batch_size=batch_size, shuffle=True, collate_fn=pad_collate)
-        losses = []
-        accs = []
+        print('epoch %d is in progress' % e)
         for batch_idx, data in enumerate(train_loader):
             contexts, questions, answers = data
+            b_size = len(contexts)
             optim.zero_grad()
-            c = contexts.view(batch_size, -1).long()
-            q = questions.view(batch_size, -1).long()
+            c = contexts.view(b_size, -1).long()
+            q = questions.view(b_size, -1).long()
             c.transpose_(0, 1)
             q.transpose_(0, 1)
-            hidden = baseGRU.initHidden(batch_size)
+            hidden = baseGRU.initHidden(b_size)
             out = baseGRU(c, q, hidden)
             topv, topi = out.data.topk(1)
             topi = topi.view(1, -1)
@@ -56,13 +58,16 @@ def train(dset_train, batch_size, epoch, baseGRU):
             accs.append(acc.item())
             loss.backward()
             optim.step()
-            if batch_idx == 50: break
-        plt.figure()
-        plt.plot(losses)
-        plt.title('training loss')
-        plt.figure()
-        plt.plot(accs)
-        plt.title('training accuracy')
+            #if batch_idx == 50: break
+        if e % 16 == 0:
+            plt.figure()
+            plt.plot(losses)
+            plt.title('training loss')
+            plt.show()
+            plt.figure()
+            plt.plot(accs)
+            plt.title('training accuracy')
+            plt.show()
         
 def test(dset_test, batch_size, baseGRU):
     test_loader = DL(dset_test, batch_size=batch_size, shuffle=True, collate_fn=pad_collate)
@@ -71,11 +76,12 @@ def test(dset_test, batch_size, baseGRU):
     accs = []
     for batch_idx, data in enumerate(test_loader):
         contexts, questions, answers = data
-        c = contexts.view(batch_size, -1).long()
-        q = questions.view(batch_size, -1).long()
+        b_size = len(contexts)
+        c = contexts.view(b_size, -1).long()
+        q = questions.view(b_size, -1).long()
         c.transpose_(0, 1)
         q.transpose_(0, 1)
-        hidden = baseGRU.initHidden(batch_size)
+        hidden = baseGRU.initHidden(b_size)
         out = baseGRU(c, q, hidden)
         topv, topi = out.data.topk(1)
         topi = topi.view(1, -1).squeeze(0)
