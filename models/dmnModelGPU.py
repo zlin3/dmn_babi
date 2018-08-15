@@ -62,7 +62,6 @@ class AnswerModule(nn.Module):
         super(AnswerModule, self).__init__()
         self.z = nn.Linear(2 * hidden_size, vocab_size)
         init.xavier_normal(self.z.state_dict()['weight'])
-        #init.xavier_normal(self.z.state_dict()['weight'])
         self.dropout = nn.Dropout(0.1)
 
     def forward(self, M, questions):
